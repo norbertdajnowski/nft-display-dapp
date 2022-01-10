@@ -9,8 +9,8 @@ from contract_collection import contracts
 contractsObj = contracts()
 web3 = Web3(HTTPProvider('http://127.0.0.1:8545'))
 
-compiled_contract = compile_source(contractsObj.getContract("storageContract"))
-contract_interface = compiled_contract['<stdin>:StorageContract']
+compiled_contract = compile_source(contractsObj.getContract("FactoryNFT"))
+contract_interface = compiled_contract['<stdin>:FactoryNFT']
 
 StorageContract = web3.eth.contract(
     abi = contract_interface['abi'],
