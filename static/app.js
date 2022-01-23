@@ -1,11 +1,10 @@
 let provider, accounts, signer;
 let accountAddress = "";
 
-const ethereumButton = document.querySelector('.metamask_login');
-const showAccount = document.querySelector('.showAccount');
+const ethereumButton = document.getElementById(".metamask_login");
 
-ethereumButton.addEventListener('click', () => {
-    getAccount();
+$( "#metamask_login" ).on( "click", function() {
+    connectMeta();
   });
 
 const { ethereum } = window;
@@ -18,13 +17,12 @@ const isMetaMaskConnected = async () => {
     return accounts.length > 0;
 }
 
-async function getAccount() {
+async function connectMeta() {
     const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
     const account = accounts[0];
     accountAddress = account;
     updateBackWallet(account);
     provider = new ethers.providers.Web3Provider(web3.currentProvider);
-    /*
     provider.getNetwork().then(function (result) {    
 
         provider.listAccounts().then(function (result) {
@@ -40,15 +38,15 @@ async function getAccount() {
             // build out the table of players
         })
     })
-    */
   }
 
 async function updateBackWallet(walletAddress) {
-    $.post("/update_address", {"wallet_address": walletAddress});
+    $.post("/update", {"wallet_address": walletAddress});
 }
 
 isMetaMaskConnected().then((connected) => {
     if (connected) {
-        getAccount()
+        connectMeta();
+        console.log("connected");
     } 
 });

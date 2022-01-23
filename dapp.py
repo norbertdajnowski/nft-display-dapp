@@ -2,12 +2,13 @@
 Decentralized Application
 """
 # Flask requirements
-from flask import render_template, request, Flask
+from flask import render_template, request, Flask, redirect, url_for
 from flask_jwt_extended import JWTManager
+import jinja2
 
 # DAPP Requirements
 from hexbytes import HexBytes
-from models.deploy_contract import contract, web3
+from models.deploy_contract import deployContract
 import random
 import string
 
@@ -19,26 +20,28 @@ app.config['JWT_TOKEN_LOCATION'] = ['cookies']
 app.config['JWT_COOKIE_SECURE'] = True
 app.config['JWT_COOKIE_CSRF_PROTECT'] = True
 jwt = JWTManager(app)
+clientContract = deployContract('http://127.0.0.1:8545')
 
 # Application routes
 @app.route("/")
 def home():
-    return render_template('getMeta.html')
+    return render_template('getMeta.html', clientAddress = clientContract.clientAddress)
 
-@app.route("/update_address", methods = ['POST'])
+@app.route("/update", methods = ['POST'])
 def updateAddress():
-    contract.clientAddress = request.form.get("wallet_address")
-    #fetch existing NFTs from this client address
-    return render_template('getMeta.html', clientAddress = contract.clientAddress)
+    clientAddress = request.form.get("wallet_address")
+    clientContract.clientAddress = clientAddress
+    return redirect(url_for('home'))
+
 
 @app.route("/mint", methods = ['GET'])
 def mint_url():
-    return render_template('minter.html', clientAddress = contract.clientAddress)
+    pass
 
 @app.route("/minted", methods = ['POST'])
 def mint_nft():
     #collect meta data from post form and mint the nft (IPFS Pinata)
-    return render_template('getMeta.html', clientAddress = contract.clientAddress)
+    pass
 
 if __name__ == '__main__':
     app.run(debug=True, host='localhost', port=5000)
