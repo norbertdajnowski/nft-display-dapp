@@ -38,6 +38,7 @@ async function connectMeta() {
             // build out the table of players
         })
     })
+    
   }
 
 async function updateBackWallet(walletAddress) {

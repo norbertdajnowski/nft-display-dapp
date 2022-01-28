@@ -3,7 +3,7 @@ import os
 
 class contracts:
 
-    path = 'contractsFolder/'
+    path = 'contracts/token/ERC721/'
     contract = {}
 
     def __init__(self) -> contract:
