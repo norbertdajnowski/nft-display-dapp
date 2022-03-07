@@ -1,19 +1,77 @@
 pragma solidity ^0.8.1;
 
 
-import "C:/Users/Norbert/Desktop/nft-display-dapp/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "C:/Users/Norbert/Desktop/nft-display-dapp/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
 //this contract inherits ERC721
-contract FactoryNFT is ERC721, ERC721Enumerable {
+contract Factory is ERC721, ERC721Enumerable {
     
     uint256 public tokenCounter;
+    uint256 public displayNodeCounter;
+    address private ownerAddress;
+
+    struct displayNode{
+        address adminRouter;
+        uint16 status; // 0 = unactive     1 = active
+        uint256 cooldownEnd;
+        uint256 tokenId;
+    }
+
+    mapping(uint256 => displayNode) displays;
+    uint256[] public displayIds;
 
     //constructor for an ERC721 is a name and symbol
     constructor() ERC721 ("nfts_display", "DISPLAY") public{
         tokenCounter = 0;
+        displayNodeCounter = 0;
+        ownerAddress = msg.sender;
     }
     
+    //Initiate a new display node
+    function registerDisplayNode(address adminRouter, uint256 cooldownEnd) public{
+        displayNode storage newDisplay = displays[displayNodeCounter];
+        newDisplay.adminRouter = adminRouter;
+        newDisplay.status = 0;
+        newDisplay.cooldownEnd = cooldownEnd;
+        displayIds.push(displayNodeCounter);
+        displayNodeCounter = displayNodeCounter + 1;
+    }
+
+    //Change node router address (can only be called by the router or contract deployer)
+    function updateRouterAddress(uint256 nodeId, address newRouter) public {
+        displayNode storage display = displays[nodeId];
+        require(msg.sender == display.adminRouter || msg.sender == ownerAddress, 'Not enough privileges to change router address');
+        display.adminRouter = newRouter;
+    }
+
+    //Upload a token to the display node and set cooldown
+    function displayTokenUpload(uint256 nodeId, uint256 tokenId, uint256 cooldownEnd) public {
+        displayNode storage display = displays[nodeId];
+        require(display.status == 0, 'The display node is still occupied');
+        display.tokenId = tokenId;
+        display.cooldownEnd = cooldownEnd;
+        display.status = 1;
+    }
+
+    //Fetch a display's Token ID
+    function getDisplayToken(uint256 nodeId) public returns (uint256){
+        displayNode storage display = displays[nodeId];
+        require(display.status == 1, 'The display node is currently unactive');
+        return display.tokenId;
+    }
+
+    //Check status of a display
+    function getDisplayStatus(uint256 nodeId) public returns (uint16){
+        displayNode storage display = displays[nodeId];
+        return display.status;
+    }
+
+    //Get the number of displays
+    function displayNumber() public view returns(uint256){
+        return displayNodeCounter;
+    }
+
     // Overrides
     function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override(ERC721, ERC721Enumerable) {
         super._beforeTokenTransfer(from, to, tokenId);
@@ -26,7 +84,7 @@ contract FactoryNFT is ERC721, ERC721Enumerable {
     // Optional mapping for token URIs
     mapping(uint256 => string) private _tokenURIs;
 
-        function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         require(_exists(tokenId), "ERC721URIStorage: URI query for nonexistent token");
 
         string memory _tokenURI = _tokenURIs[tokenId];

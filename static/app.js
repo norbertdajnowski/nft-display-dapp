@@ -1,53 +1,34 @@
 let provider, accounts, signer;
 let accountAddress = "";
 
-const ethereumButton = document.getElementById(".metamask_login");
-
 $( "#metamask_login" ).on( "click", function() {
-    connectMeta();
+        $.get("/")
+    });
+
+$( "#mintNew" ).on( "click", function() {
+        mintExample();
+        //Fix delay so that the nft is displayed after reload (maybe asynchronous with the get query, wait for response)
+        setTimeout(location.reload(), 3000);
+    });
+
+function mintExample() {
+    $.get("/mint")
+}
+
+$(function() {
+  $(".selectable").selectable({
+    selected: function() {
+      var selectedItemList = $("#selected-item-list").empty();
+      $(".selectable img").each(function(index) {
+        if ($(this).hasClass("ui-selected")) {
+          selectedItemList.append((index + 1) + ", ");
+          if($(this).hasClass("nft")) {
+            $(".nftInput").val($(this).attr('id'))
+          }else{
+            $(".nodeInput").val($(this).attr('id'))
+          }
+        }
+      });
+    }
   });
-
-const { ethereum } = window;
-if (ethereum) {
-    provider = new ethers.providers.Web3Provider(ethereum);
-}
-
-const isMetaMaskConnected = async () => {
-    const accounts = await provider.listAccounts();
-    return accounts.length > 0;
-}
-
-async function connectMeta() {
-    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-    const account = accounts[0];
-    accountAddress = account;
-    updateBackWallet(account);
-    provider = new ethers.providers.Web3Provider(web3.currentProvider);
-    provider.getNetwork().then(function (result) {    
-
-        provider.listAccounts().then(function (result) {
-
-            provider.getBalance(String(result[0])).then(function (balance) {
-                var myBalance = (balance / ethers.constants.WeiPerEther).toFixed(4);
-                console.log("Your Balance: " + myBalance);
-            });
-
-            // get a signer object so we can do things that need signing
-            signer = provider.getSigner();
-
-            // build out the table of players
-        })
-    })
-    
-  }
-
-async function updateBackWallet(walletAddress) {
-    $.post("/update", {"wallet_address": walletAddress});
-}
-
-isMetaMaskConnected().then((connected) => {
-    if (connected) {
-        connectMeta();
-        console.log("connected");
-    } 
 });

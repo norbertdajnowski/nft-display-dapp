@@ -3,25 +3,34 @@
     <div class="w3-cell-row" align="center">
       <div class="w3-container w3-cell w3-mobile">
         <div class="w3-card">
+          <h5 style="padding-top: 25px;">When you've selected an NFT and a device, press the upload button to start.</h5>
           <h1 class="display-6 fw-bolder" style="margin-top: 25px;">Available NFTs:</h1>
-          <div class="text-center">
-            <img src="https://via.placeholder.com/200" class="rounded" style="margin: 25px" alt="...">
-            <img src="https://via.placeholder.com/200" class="rounded" style="margin: 25px" alt="...">
-            <img src="https://via.placeholder.com/200" class="rounded" style="margin: 25px" alt="...">
+          <div class="text-center selectable" style="width: 75%;">
+              {% set counter = 0 %}
+              {% for i in imgSourceList%}
+                {% if i is not none %}
+                  <img src="{{i}}" class="rounded ui-widget-content nft" id="img-{{ counter + loop.index0 }}" style="margin: 25px" width="250" height="250" alt="nft">
+                {% endif %}
+              {% endfor %}
           </div>
-          <button type="button" class="btn btn-secondary" id="mintPage">Mint New</button>
+          <button type="button" class="btn btn-secondary" id="mintNew">Mint New</button>
         </div>
       </div>
     </div>
-    <div class="w3-cell-row" align="center">
+    <div class="w3-cell-row" align="center" style="margin-top: 25px;">
       <div class="w3-container w3-cell w3-mobile">
-        <div class="w3-card">
+        <div class="w3-card" style="padding-bottom: 25px;">
           <h1 class="display-6 fw-bolder">Available Display Nodes:</h1>
-          <div class="text-center">
-            <img src="https://via.placeholder.com/200" class="rounded" style="margin: 25px" alt="...">
-            <img src="https://via.placeholder.com/200" class="rounded" style="margin: 25px" alt="...">
-            <img src="https://via.placeholder.com/200" class="rounded" style="margin: 25px" alt="...">
+          <div class="text-center selectable">
+            {% for x in displayNodeList %}
+              <img src="https://via.placeholder.com/200" id="display-{{x}}" class="rounded ui-widget-content display" style="margin: 25px" alt="...">
+            {% endfor %}
           </div>
+          <form class="col-md-6" method="POST" action="/upload">
+            <input type="hidden" name="nftInput" class="nftInput">
+            <input type="hidden" name="nodeInput" class="nodeInput">
+            <input class="btn btn-primary" type="submit" name="Upload" value="Upload">
+          </form>
         </div>
       </div>
     </div>

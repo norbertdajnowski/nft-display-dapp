@@ -2,13 +2,15 @@
 Decentralized Application
 """
 # Flask requirements
+from http import client
 from flask import render_template, request, Flask, redirect, url_for
 from flask_jwt_extended import JWTManager
 import jinja2
+from web3 import Web3, HTTPProvider
 
 # DAPP Requirements
 from hexbytes import HexBytes
-from models.deploy import deployContract
+from models.deploy import web3Connect
 import random
 import string
 
@@ -20,33 +22,57 @@ app.config['JWT_TOKEN_LOCATION'] = ['cookies']
 app.config['JWT_COOKIE_SECURE'] = True
 app.config['JWT_COOKIE_CSRF_PROTECT'] = True
 jwt = JWTManager(app)
-clientContract = deployContract('http://127.0.0.1:8545')
-mintContract = clientContract.compileDeploy("FactoryNFT")
+web3Interface = web3Connect('http://192.168.1.107:8545')
+contract = web3Interface.deployContract("Factory")
 
 # Application routes
 @app.route("/")
 def home():
-    return render_template('getMeta.html', clientAddress = clientContract.clientAddress)
-
-@app.route("/update", methods = ['POST'])
-def updateAddress():
-    clientAddress = request.form.get("wallet_address")
-    clientContract.clientAddress = clientAddress
-    tx_hash = mintContract.functions.createNFT("https://i.pinimg.com/564x/59/95/18/5995186a3da28eef8906f5d3878c76c2.jpg").transact()
-    tx_receipt = clientContract.web3.eth.wait_for_transaction_receipt(tx_hash)
-    print(tx_receipt)
-    #Get URI from the newly minted token
-    print(mintContract.functions.tokenURI(0x0000000000000000000000000000000000000000000000000000000000000001).call())
-    return redirect(url_for('home'))
+    print(web3Interface.clientAddress)
+    print(contract.address)
+    imgSourceList = []
+    displayNodeList = []
+    try:
+        numOfTokens = contract.functions.balanceOf(web3Interface.clientAddress).call()
+        numOfDisplayNodes = contract.functions.displayNumber().call()
+        for i in range(numOfTokens):
+            tokenId = contract.functions.tokenOfOwnerByIndex(web3Interface.clientAddress, i).call()
+            imgSourceList.append(contract.functions.tokenURI(tokenId).call())
+        for x in range(numOfDisplayNodes):
+            if (contract.functions.getDisplayStatus(x).call() == 0):
+                displayNodeList.append(x)
+    except Exception as e:
+        print("Exception has occured: " , e)
+    return render_template('getMeta.html', clientAddress = web3Interface.clientAddress, imgSourceList = imgSourceList, displayNodeList = displayNodeList)
 
 @app.route("/mint", methods = ['GET'])
-def mint_url():
-    pass
+def mint():
+    #test mint
+    tx_hash = contract.functions.createNFT("https://images.pexels.com/photos/10346451/pexels-photo-10346451.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260").transact()
+    tx_receipt = web3Interface.web3.eth.wait_for_transaction_receipt(tx_hash)
+    print(tx_receipt)
+    return redirect(url_for('home'))
 
 @app.route("/minted", methods = ['POST'])
 def mint_nft():
     #collect meta data from post form and mint the nft (IPFS Pinata)
     pass
 
+@app.route("/upload", methods = ['POST'])
+def upload():
+    print("test")
+    pass
+
 if __name__ == '__main__':
     app.run(debug=True, host='localhost', port=5000)
+
+
+
+#Some Notes
+
+    #Get URI from the newly minted token
+    #tx_hash = mintContract.functions.createNFT("https://images.pexels.com/photos/10346451/pexels-photo-10346451.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260").transact()
+    #tx_receipt = clientContract.web3.eth.wait_for_transaction_receipt(tx_hash)
+        #Return token ID from receipt
+    #print(tx_receipt.logs[0].topics[3])
+    #print(mintContract.functions.tokenURI(0x0000000000000000000000000000000000000000000000000000000000000001).call())
