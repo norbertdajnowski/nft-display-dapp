@@ -61,6 +61,8 @@ contract Factory is ERC721, ERC721Enumerable {
         return display.tokenId;
     }
 
+    //Write a function for the router to repeatedly check if display cooldown is finished
+
     //Check status of a display
     function getDisplayStatus(uint256 nodeId) public returns (uint16){
         displayNode storage display = displays[nodeId];

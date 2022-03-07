@@ -3,6 +3,7 @@ Decentralized Application
 """
 # Flask requirements
 from http import client
+from datetime import datetime
 from flask import render_template, request, Flask, redirect, url_for
 from flask_jwt_extended import JWTManager
 import jinja2
@@ -53,26 +54,15 @@ def mint():
     print(tx_receipt)
     return redirect(url_for('home'))
 
-@app.route("/minted", methods = ['POST'])
-def mint_nft():
-    #collect meta data from post form and mint the nft (IPFS Pinata)
-    pass
-
 @app.route("/upload", methods = ['POST'])
 def upload():
-    print("test")
-    pass
+    token = int(request.form.get('nftInput')[4:])
+    display = 0 #int(request.form.get('nodeInput')[8:])
+    timeout = int(datetime.now().strftime("%Y%m%d%H%M")) + 3
+    tx_hash = contract.functions.displayTokenUpload(display, token, timeout).transact()
+    tx_receipt = web3Interface.web3.eth.wait_for_transaction_receipt(tx_hash)
+    print(tx_receipt)
+    return redirect(url_for('home'))
 
 if __name__ == '__main__':
     app.run(debug=True, host='localhost', port=5000)
-
-
-
-#Some Notes
-
-    #Get URI from the newly minted token
-    #tx_hash = mintContract.functions.createNFT("https://images.pexels.com/photos/10346451/pexels-photo-10346451.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260").transact()
-    #tx_receipt = clientContract.web3.eth.wait_for_transaction_receipt(tx_hash)
-        #Return token ID from receipt
-    #print(tx_receipt.logs[0].topics[3])
-    #print(mintContract.functions.tokenURI(0x0000000000000000000000000000000000000000000000000000000000000001).call())
